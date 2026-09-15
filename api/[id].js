@@ -46,6 +46,10 @@ export default async function handler(req, res) {
       const newItem = {
         id: itemId,
         name: body.name || '',
+        username: body.username || '',
+        description: body.description || '',
+        country: body.country || '',
+        contenttype: body.contenttype || '',
         image: body.image || '',
         banner: body.banner || '',
         count: count,

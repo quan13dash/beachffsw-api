@@ -3,17 +3,12 @@ import { Redis } from '@upstash/redis';
 const redis = Redis.fromEnv();
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+    return res.status(200).end();
   }
 
   try {
@@ -30,17 +25,19 @@ export default async function handler(req, res) {
       
       const data = typeof item === 'string' ? JSON.parse(item) : item;
 
-      const { count, min, max, ...rest } = data;
+      // Loại bỏ count thực, min, max, minv, maxv
+      const { count, min, max, minv, maxv, ...rest } = data;
 
       return {
         ...rest,
-        count: data.roundcount ?? 0
+        count: data.roundcount ?? 0, // Giả vờ roundcount là count
+        views: Math.floor(data.views ?? 0),
+        videos: Math.floor(data.videos ?? 0)
       };
     }).filter(Boolean);
 
     return res.status(200).json(cleanedItems);
   } catch (error) {
-    console.error('Lỗi khi lấy danh sách items:', error);
-    return res.status(500).json({ error: 'Lỗi máy chủ' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 }

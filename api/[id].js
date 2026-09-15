@@ -19,7 +19,6 @@ export default async function handler(req, res) {
 
   const { id: rawId } = req.query;
 
-  // 1. TẠO HOẶC CẬP NHẬT JSON (POST)
   if (req.method === 'POST') {
     try {
       const body = req.body;
@@ -53,7 +52,6 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. ĐỌC FILE JSON (GET /api/<id>.json)
   if (req.method === 'GET') {
     const cleanId = rawId ? rawId.replace(/\.json$/i, '') : '';
 

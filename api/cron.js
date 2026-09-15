@@ -46,8 +46,3 @@ export default async function handler(req, res) {
 
   return res.status(200).json({ success: true, message: 'Cron job executed successfully' });
 }
-  // Lần 2: Chạy lại
-  await updateAll();
-
-  return res.status(200).json({ success: true });
-}

@@ -2,6 +2,22 @@ import { Redis } from '@upstash/redis';
 
 const redis = Redis.fromEnv();
 
+// Hàm tạo số thực ngẫu nhiên cho count
+function getRandomFloat(min, max) {
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return min + (array[0] / (0xFFFFFFFF + 1)) * (max - min);
+}
+
+// Hàm tạo số nguyên ngẫu nhiên trong khoảng [min, max] cho views
+function getRandomInt(min, max) {
+  const minInt = Math.ceil(min);
+  const maxInt = Math.floor(max);
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return Math.floor(minInt + (array[0] / (0xFFFFFFFF + 1)) * (maxInt - minInt + 1));
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -13,7 +29,7 @@ export default async function handler(req, res) {
 
   const { id: rawId } = req.query;
 
-  // 1. CREATE OR UPDATE ITEM (POST)
+  // 1. CREATE / UPDATE (POST)
   if (req.method === 'POST') {
     try {
       const body = req.body;
@@ -24,7 +40,8 @@ export default async function handler(req, res) {
       }
 
       const count = Number(body.count) || 0;
-      const views = Math.floor(Number(body.views)) || 0;
+      const views = Math.floor(Number(body.views) || 0);
+      const videos = Math.floor(Number(body.videos) || 0);
 
       const newItem = {
         id: itemId,
@@ -35,12 +52,10 @@ export default async function handler(req, res) {
         min: Number(body.min),
         max: Number(body.max),
         roundcount: Math.floor(count),
-        
-        // Custom variables
         views: views,
         minv: body.minv !== undefined ? Math.floor(Number(body.minv)) : 0,
         maxv: body.maxv !== undefined ? Math.floor(Number(body.maxv)) : 0,
-        videos: body.videos !== undefined ? body.videos : null
+        videos: videos
       };
 
       await redis.set(`item:${itemId}`, newItem);
@@ -51,11 +66,11 @@ export default async function handler(req, res) {
         data: newItem
       });
     } catch (err) {
-      return res.status(400).json({ error: 'Invalid JSON body' });
+      return res.status(400).json({ error: 'Invalid JSON payload' });
     }
   }
 
-  // 2. READ ITEM (GET /api/<id>.json)
+  // 2. READ (GET /api/<id>.json)
   if (req.method === 'GET') {
     const cleanId = rawId ? rawId.replace(/\.json$/i, '') : '';
 

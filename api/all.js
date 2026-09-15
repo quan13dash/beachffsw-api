@@ -30,7 +30,11 @@ export default async function handler(req, res) {
 
       return {
         ...rest,
-        count: data.roundcount ?? 0, // Giả vờ roundcount là count
+        username: data.username || '',
+        description: data.description || '',
+        country: data.country || '',
+        contenttype: data.contenttype || '',
+        count: data.roundcount ?? 0, // Faking roundcount as count :)
         views: Math.floor(data.views ?? 0),
         videos: Math.floor(data.videos ?? 0)
       };

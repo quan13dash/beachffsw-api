@@ -25,8 +25,8 @@ export default async function handler(req, res) {
       
       const data = typeof item === 'string' ? JSON.parse(item) : item;
 
-      // Loại bỏ count thực, min, max, minv, maxv
-      const { count, min, max, minv, maxv, ...rest } = data;
+      // Ẩn min, max, minv, maxv, slowingrate, lastBoostUpdate
+      const { count, min, max, minv, maxv, slowingrate, lastBoostUpdate, ...rest } = data;
 
       return {
         ...rest,
@@ -34,12 +34,18 @@ export default async function handler(req, res) {
         description: data.description || '',
         country: data.country || '',
         contenttype: data.contenttype || '',
-        count: data.roundcount ?? 0, // Faking roundcount as count :)
+        count: data.roundcount ?? 0,
         views: Math.floor(data.views ?? 0),
-        videos: Math.floor(data.videos ?? 0)
+        videos: Math.floor(data.videos ?? 0),
+        boostingrate: data.boostingrate ?? 1
       };
     }).filter(Boolean);
 
+    return res.status(200).json(cleanedItems);
+  } catch (error) {
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+}
     return res.status(200).json(cleanedItems);
   } catch (error) {
     return res.status(500).json({ error: 'Internal server error' });

@@ -2,22 +2,6 @@ import { Redis } from '@upstash/redis';
 
 const redis = Redis.fromEnv();
 
-// Hàm tạo số thực ngẫu nhiên cho count
-function getRandomFloat(min, max) {
-  const array = new Uint32Array(1);
-  crypto.getRandomValues(array);
-  return min + (array[0] / (0xFFFFFFFF + 1)) * (max - min);
-}
-
-// Hàm tạo số nguyên ngẫu nhiên trong khoảng [min, max] cho views
-function getRandomInt(min, max) {
-  const minInt = Math.ceil(min);
-  const maxInt = Math.floor(max);
-  const array = new Uint32Array(1);
-  crypto.getRandomValues(array);
-  return Math.floor(minInt + (array[0] / (0xFFFFFFFF + 1)) * (maxInt - minInt + 1));
-}
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -42,6 +26,10 @@ export default async function handler(req, res) {
       const count = Number(body.count) || 0;
       const views = Math.floor(Number(body.views) || 0);
       const videos = Math.floor(Number(body.videos) || 0);
+      
+      const boostingrate = body.boostingrate !== undefined ? Number(body.boostingrate) : 1;
+      // slowingrate mặc định là 5 phút nếu không truyền
+      const slowingrate = body.slowingrate !== undefined ? Number(body.slowingrate) : 5;
 
       const newItem = {
         id: itemId,
@@ -59,7 +47,10 @@ export default async function handler(req, res) {
         views: views,
         minv: body.minv !== undefined ? Math.floor(Number(body.minv)) : 0,
         maxv: body.maxv !== undefined ? Math.floor(Number(body.maxv)) : 0,
-        videos: videos
+        videos: videos,
+        boostingrate: boostingrate > 0 ? boostingrate : 1,
+        slowingrate: slowingrate > 0 ? slowingrate : 5, // Đảm bảo số phút > 0
+        lastBoostUpdate: Date.now()
       };
 
       await redis.set(`item:${itemId}`, newItem);
